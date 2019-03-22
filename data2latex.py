@@ -33,8 +33,15 @@ pg = psycopg2.connect('dbname=grandelecture')
 db = pg.cursor()
 
 db.execute("SELECT prenom, nom, sexe FROM deputes WHERE nom = %s", (sys.argv[1],))
-
 elu = db.fetchone()
+
+db.execute("SELECT count(distinct(authorid)), count(*) FROM contrib JOIN elu_cp ON (authorzipcode=code_postal) WHERE nom = %s",
+           (sys.argv[1],))
+stats = db.fetchone()
+
+db.execute(
+    'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom=%s) e natural join documents d ', (sys.argv[1],))
+docs = db.fetchone()
 
 print("""\\documentclass[a4paper, 12pt]{book}
 \\usepackage[utf8]{inputenc}
@@ -42,6 +49,7 @@ print("""\\documentclass[a4paper, 12pt]{book}
 \\usepackage{makeidx}
 \\usepackage{hyperref}
 \\usepackage{needspace}
+\\usepackage{fancyhdr}
 \\hypersetup{
     colorlinks=true,
     linkcolor=blue,
@@ -89,9 +97,6 @@ Par respect pour ces citoyens, nous vous demandons de prendre le temps de lire v
 \\newline
 Les pages suivantes contiennent une sélection aléatoire d'une centaine de contributions, 25 pour chacun des 4 thèmes, sélectionnées dans votre circonscription.
 
-\\subsection*{Quelques chiffres}
-L'ensemble des contributions publiques déposées sur \\emph{granddebat.fr} représente un total de plus de 160 millions de mots (plus de 300 fois Les Misérables de Victor Hugo).\\newline
-Il faudrait plus de 4 ans et demi pour lire l'intégralité à raison de 8 heures par jours, 7 jours sur 7.
 \\subsection*{Mise en garde}
 
 Différentes analyses ont montré la très faible représentativité des contributions faites sur chacun des espaces où le Grand Débat a pu avoir lieu (sur le site officiel, sur des sites alternatifs, par courrier ou dans des réunions locales).\\newline
@@ -101,6 +106,26 @@ Différentes analyses ont montré la très faible représentativité des contrib
 \\fbox{Le contenu qui vous est proposé à lire ici est donc à interpreter avec prudence.}
 \\clearpage
 
+\\section*{Quelques chiffres}
+L'ensemble des contributions publiques déposées sur \\emph{granddebat.fr} représente un total de plus de 160 millions de mots (plus de 300 fois Les Misérables de Victor Hugo).\\newline
+Il faudrait plus de 4 ans et demi pour lire l'intégralité à raison de 8 heures par jours, 7 jours sur 7.
+""" % ('Monsieur le député' if elu[2] == 'M' else 'Madame la députée',
+       elu[0],
+       elu[1],
+       ) + crlf)
+
+if stats[0] > 0 or len(docs)>0:
+    out("\\section*{Dans votre circonscription}"+crlf)
+    if stats[0] > 0 :
+        out("""\\textbf{%s} personnes ont déposé \\textbf{%s} contributions libres sur \\emph{granddebat.fr}
+""" % (stats[0], stats[1]))
+    if len(docs)>0:
+        out("""\\textbf{%s} document%s concernant \\textbf{%s} réunion%s sont aussi disponibles
+""" % (docs[0], 's' if docs[0] > 1 else '', docs[1], 's' if docs[1] > 1 else ''))
+
+out("""
+\\clearpage
+
 \\pagenumbering{roman}
 \\tableofcontents
 
@@ -108,10 +133,11 @@ Différentes analyses ont montré la très faible représentativité des contrib
 
 \\clearpage
 
-""" % ('Monsieur le député' if elu[2]=='M' else 'Madame la députée', elu[0], elu[1]) +crlf)
+""")
 
 
-for t in range(0,4):
+minutes = 0
+for t in range(0, 4):
     out('\\chapter{%s} \\vspace{3cm}' % themes[t])
     db.execute("""
     SELECT      c.*
@@ -123,13 +149,22 @@ for t in range(0,4):
     """, (sys.argv[1], str(t+1)))
 
     gdebat = db.fetchall()
+    
     for gd in gdebat:
         c = gd[0]
+
+        #  comptage des mots des réponses
+        mots = 0
+        for q in c['responses']:
+            if q['formattedValue']:
+                mots = mots + 10 + len(re.sub(r'[^A-Za-z0-1]',' ',q['formattedValue']).split())
+        minutes = minutes + int(mots/150)
 
         #out('\\addcontentsline{toc}{section}{%s}' % (txt2tex(c['title']), ) + crlf)
         out('\\needspace{3cm}')
         out('\\section{%s}' % (txt2tex(c['title']), ) + crlf+crlf)
-        out('\\noindent Code postal: \\textbf{%s} - Déposée le : %s\\newline' % (txt2tex(c['authorZipCode']), c['publishedAt'][:10]) + crlf+crlf)
+        out('\\noindent Code postal: \\textbf{%s} - Déposée le : %s  (lecture : %s min.)\\newline'
+            % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], int(mots/150)) + crlf+crlf)
         for q in c['responses']:
             if q['formattedValue']:
                 out('\\needspace{2cm}')
@@ -171,24 +206,27 @@ for t in range(0,4):
                         txt2tex(q['formattedValue']) + crlf)
 
 
+
 out("""
 
-\\backmatter
-\\pagenumbering{gobble}
-\\pagebreak
+\\clearpage
+\\pagestyle{fancy}
+\\fancyhf{}
+\\renewcommand{\\headrulewidth}{0pt}
 \\hspace{0pt}\\vfill
 
 \\noindent
 \\rule{15cm}{0.25pt}
-Ce document a été généré automatiquement le \\today\\newline
-à l'aide du langage \\LaTeX et des outils et logiciels libres suivants:
+Ce document a été généré automatiquement le \\today{} à l'aide du langage \\LaTeX{} et des outils et logiciels libres suivants:
 \\begin{itemize}
 \\item langage \\href{https://www.python.org/}{python}
 \\item base de donnée \\href{https://www.postgresql.org/}{PostgreSQL}
 \\item outil de manipulation de fichier json \\href{https://stedolan.github.io/jq/}{"jq"}
 \\item outil de manipulation de fichiers csv \\href{https://csvkit.readthedocs.io/en/latest/}{"csvkit"}
 \\end{itemize}
-Le code produit durant le hackathon pour ce projet \\emph{"Grande Lecture"} est disponible sur \\href{https://github.com/cquest/grande_lecture}{https://github.com/cquest/grande\\_lecture}.
+Le code produit durant le hackathon pour ce projet \\emph{"Grande Lecture"} est disponible lui aussi sous une licence libre sur \\href{https://github.com/cquest/grande_lecture}{https://github.com/cquest/grande\\_lecture}
+\\newline
+\\textbf{Le temps total évalué pour sa lecture est d'au moins %s heures.}
 \\newline
 \\rule{15cm}{0.25pt}
 
@@ -198,4 +236,4 @@ Le code produit durant le hackathon pour ce projet \\emph{"Grande Lecture"} est 
 }
 \\end{document}
 
-""")
+""" % int(minutes/60))
