@@ -23,6 +23,43 @@ def out(data):
     print(data)
 
 
+def reponse2tex(gdebat):
+    global minutes
+
+    for gd in gdebat:
+        c = gd[0]
+
+        #  comptage des mots des réponses
+        mots = 0
+        for q in c['responses']:
+            if q['formattedValue']:
+                mots = mots + 10 + len(re.sub(r'[^A-Za-z0-1]',' ',q['formattedValue']).split())
+        minutes = minutes + int(mots/150)
+
+        #out('\\addcontentsline{toc}{section}{%s}' % (txt2tex(c['title']), ) + crlf)
+        out('\\needspace{3cm}')
+        out('\\section{%s}' % (txt2tex(c['title']), ) + crlf+crlf)
+        out('\\noindent Code postal: \\textbf{%s} - Déposée le : %s  (lecture : %s min.)\\newline'
+            % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], int(mots/150)) + crlf+crlf)
+        prev = ''
+        for q in c['responses']:
+            if q['formattedValue']:
+                if (q['questionTitle'][:7] not in ['Si oui,','Pourquo']):
+                    if prev in ['Oui','Non']:
+                        out('\\newline')
+                    out('\\needspace{2cm} \\noindent \\footnotesize{\\emph{%s}}' % txt2tex(q['questionTitle']))
+
+                if q['formattedValue'] in ['Oui','Non']:
+                    out('\\par \\noindent \\textbf{%s}' % txt2tex(q['formattedValue']))
+                else:
+                    if prev not in ['Oui','Non']:
+                        out('\\par \\noindent')
+                    else:
+                        out(', ')
+                    out('\\textbf{%s} \\newline' % txt2tex(q['formattedValue']))
+            prev = q['formattedValue']
+
+
 crlf = '\x0d\x0a'
 themes = ["Démocratie et citoyenneté",
           "Transition écologique",
@@ -38,6 +75,11 @@ elu = db.fetchone()
 db.execute("SELECT count(distinct(authorid)), count(*) FROM contrib JOIN elu_cp ON (authorzipcode=code_postal) WHERE nom = %s",
            (sys.argv[1],))
 stats = db.fetchone()
+
+db.execute("SELECT r.* FROM deputes d NATURAL JOIN ranks r WHERE nom = %s",
+           (sys.argv[1],))
+ranks = db.fetchone()
+
 
 db.execute(
     'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom=%s) e natural join documents d ', (sys.argv[1],))
@@ -58,6 +100,11 @@ print("""\\documentclass[a4paper, 12pt]{book}
 }
 
 
+\\usepackage{geometry}
+\\geometry{a4paper, portrait, margin=25mm}
+\\setlength{\parindent}{0em}
+
+
 \\title{Grande Lecture pour le Grand Débat}
 \\author{Christian Quest}
 \\date{2019-03-23} 
@@ -69,7 +116,6 @@ print("""\\documentclass[a4paper, 12pt]{book}
 
 \\pagenumbering{gobble}
 \\begin{center}
-\\vspace{5cm}
 \\Huge
 \\noindent\\textbf{Grande Lecture\\newline
 du Grand Débat\\newline}
@@ -104,7 +150,6 @@ Différentes analyses ont montré la très faible représentativité des contrib
 À titre d'exemple, sur certaines circonscriptions législatives, le nombre de citoyen qui a déposé une contribution sur \\emph{granddebat.fr} varie dans un rapport de 50 (de moins d'une centaine à plus de 3000) !\\newline
 \\newline
 \\fbox{Le contenu qui vous est proposé à lire ici est donc à interpreter avec prudence.}
-\\clearpage
 
 \\section*{Quelques chiffres}
 L'ensemble des contributions publiques déposées sur \\emph{granddebat.fr} représente un total de plus de 160 millions de mots (plus de 300 fois Les Misérables de Victor Hugo).\\newline
@@ -114,14 +159,20 @@ Il faudrait plus de 4 ans et demi pour lire l'intégralité à raison de 8 heure
        elu[1],
        ) + crlf)
 
-if stats[0] > 0 or len(docs)>0:
+if stats[0] > 0 or docs[0]>0:
     out("\\section*{Dans votre circonscription}"+crlf)
     if stats[0] > 0 :
-        out("""\\textbf{%s} personnes ont déposé \\textbf{%s} contributions libres sur \\emph{granddebat.fr}
-""" % (stats[0], stats[1]))
-    if len(docs)>0:
-        out("""\\textbf{%s} document%s concernant \\textbf{%s} réunion%s sont aussi disponibles
+        out("""\\textbf{%s} personnes ont déposé \\textbf{%s} contributions libres sur \\emph{granddebat.fr} """ % (stats[0], stats[1]))
+        if ranks :
+            out(""" ce qui place votre circonscription en \\textbf{%s\\textsuperscript{%s}} place dans le département et \\textbf{%s\\textsuperscript{%s}} place au niveau national."""
+                % (ranks[3], 'ème' if ranks[3] > 1 else 'ère',
+                ranks[2], 'ème' if ranks[2] > 1 else 'ère'))
+        out(' \\newline \\newline  ')
+
+    if docs[0]>0:
+        out("""\\textbf{%s} document%s concernant \\textbf{%s} réunion%s sont aussi disponibles sur\\newline \\href{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}\\newline
 """ % (docs[0], 's' if docs[0] > 1 else '', docs[1], 's' if docs[1] > 1 else ''))
+
 
 out("""
 \\clearpage
@@ -143,68 +194,25 @@ for t in range(0, 4):
     SELECT      c.*
     FROM        elu_cp e
     JOIN        contrib c ON (c.authorzipcode=e.code_postal)
-    WHERE       nom = %s and theme = %s
+    WHERE       nom = %s AND theme = %s AND length(c.j::text)<50000
     ORDER BY    random()
     LIMIT       25
     """, (sys.argv[1], str(t+1)))
 
     gdebat = db.fetchall()
+    reponse2tex(gdebat)
     
-    for gd in gdebat:
-        c = gd[0]
-
-        #  comptage des mots des réponses
-        mots = 0
-        for q in c['responses']:
-            if q['formattedValue']:
-                mots = mots + 10 + len(re.sub(r'[^A-Za-z0-1]',' ',q['formattedValue']).split())
-        minutes = minutes + int(mots/150)
-
-        #out('\\addcontentsline{toc}{section}{%s}' % (txt2tex(c['title']), ) + crlf)
-        out('\\needspace{3cm}')
-        out('\\section{%s}' % (txt2tex(c['title']), ) + crlf+crlf)
-        out('\\noindent Code postal: \\textbf{%s} - Déposée le : %s  (lecture : %s min.)\\newline'
-            % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], int(mots/150)) + crlf+crlf)
-        for q in c['responses']:
-            if q['formattedValue']:
-                out('\\needspace{2cm}')
-                if q['formattedValue'] in ['Oui','Non']:
-                    out('\\noindent \\emph{%s} ' % txt2tex(q['questionTitle']))
-                else:
-                    out('\\noindent \\emph{%s} \\newline ' % txt2tex(
-                        q['questionTitle']) + crlf)
-                out('\\noindent \\textbf{%s} \\newline' % txt2tex(q['formattedValue']) + crlf)
-        out('\\rule{4cm}{0.25pt}')
-
     if len(gdebat)<25:
         db.execute("""
         SELECT      c.*
         FROM        contrib c
-        WHERE       theme = %s
+        WHERE       theme = %s AND length(c.j::text)<50000
         ORDER BY    random()
         LIMIT       %s
         """, (str(t+1), 25-len(gdebat)))
 
         gdebat = db.fetchall()
-        for gd in gdebat:
-            c = gd[0]
-
-            #out('\\addcontentsline{toc}{section}{%s}' % (txt2tex(c['title']), ) + crlf)
-            out('\\needspace{3cm}')
-            out('\\section{%s}' % (txt2tex(c['title']), ) + crlf+crlf)
-            out('\\noindent Code postal: \\textbf{%s} - Déposée le : %s\\newline' % (
-                txt2tex(c['authorZipCode']), c['publishedAt'][:10]) + crlf+crlf)
-            for q in c['responses']:
-                if q['formattedValue']:
-                    out('\\needspace{2cm}')
-                    if q['formattedValue'] in ['Oui', 'Non']:
-                        out('\\noindent \\emph{%s} ' % txt2tex(q['questionTitle']))
-                    else:
-                        out('\\noindent \\emph{%s} \\newline ' % txt2tex(
-                            q['questionTitle']) + crlf)
-                    out('\\noindent \\textbf{%s} \\newline' %
-                        txt2tex(q['formattedValue']) + crlf)
-
+        reponse2tex(gdebat)
 
 
 out("""
