@@ -9,8 +9,10 @@ import psycopg2
 def txt2tex(md):
     if md:
         # guillemets
-        t = re.sub(r'([\&\%\$\#\_\{\}\~\^\\])', r'\\\1', md)
-        t = t.replace('«', ' \\og ').replace('»', ' \\fg ')
+        md = md.encode('iso-8859-1','ignore').decode('iso-8859-1')
+        t = md.replace('&amp;', ' \\& ').replace('&gt;', ' > ').replace('&lt;', ' < ')
+        t = re.sub(r'([\&\%\$\#\_\{\}\~\^\\])', r'\\\1', t)
+        t = t.replace('«', ' \\og ').replace('»', ' \\fg ').replace('','')
         t = t.replace('\n\n+', '\\par'+crlf)
         t = t.replace('\n', '\\newline'+crlf)
         t = t[0].upper() + t[1:]
@@ -129,7 +131,14 @@ Exemplaire personnel destiné à\\newline
 
 \\vspace{5cm}
 \\noindent
-Ce document a été produit par l'équipe "Grande Lecture" lors du hackathon \\#HackGDN organisée à l'Assemblée Nationale le 23 mars 2019.\\par
+Ce document a été produit par l'équipe "Grande Lecture" lors du hackathon \\#HackGDN organisé à l'Assemblée Nationale le 23 mars 2019.\\par
+Il est publié sous Licence Ouverte 2.0 et a été lui-même produit à partir des données ouvertes (opendata) suivantes:
+\\begin{itemize}
+    \\item données ouvertes du site granddebat.fr (Licence Ouverte)
+    \\item base officielle des codes postaux (source: La Poste, sous licence ODbL 1.0)
+    \\item table de correspondance des circonscriptions législatives (Ministère de l'Intérieur, Licence Ouverte)
+    \\item le Répertoire National des Élus (Ministère de l'Intérieur, Licence Ouverte)
+\\end{itemize}
 \\pagebreak
 \\section*{Préambule}
 
@@ -139,21 +148,21 @@ Le \\emph{Grand Débat National} a été l'occasion pour de nombreux citoyens de
 \\newline
 Ce projet de \\emph{Grande Lecture} a pour but de répondre partiellement à ce souhait en offrant aux élus une sélection aléatoire de contributions dans un format propice à la lecture intégrale de celles-ci.\\newline
 \\newline
-Par respect pour ces citoyens, nous vous demandons de prendre le temps de lire vous même ces quelques contributions, qui ne représentent finalement qu'une infime partie des ce qui s'est exprimé.\\newline
+Par respect pour ces citoyens, nous vous demandons de prendre le temps de lire vous-même ces quelques contributions, qui ne représentent finalement qu'une infime partie des ce qui a été exprimé.\\newline
 \\newline
-Les pages suivantes contiennent une sélection aléatoire d'une centaine de contributions, 25 pour chacun des 4 thèmes, sélectionnées dans votre circonscription.
+Les pages suivantes contiennent une sélection aléatoire d'une centaine de contributions, 25 pour chacun des quatre thèmes, sélectionnées dans votre circonscription.
 
 \\subsection*{Mise en garde}
 
 Différentes analyses ont montré la très faible représentativité des contributions faites sur chacun des espaces où le Grand Débat a pu avoir lieu (sur le site officiel, sur des sites alternatifs, par courrier ou dans des réunions locales).\\newline
 \\newline
-À titre d'exemple, sur certaines circonscriptions législatives, le nombre de citoyen qui a déposé une contribution sur \\emph{granddebat.fr} varie dans un rapport de 50 (de moins d'une centaine à plus de 3000) !\\newline
+À titre d'exemple, sur certaines circonscriptions législatives, le nombre de citoyens ayant déposé une contribution sur \\emph{granddebat.fr} varie dans un rapport de 50 (de moins d'une centaine à plus de 3000) !\\newline
 \\newline
-\\fbox{Le contenu qui vous est proposé à lire ici est donc à interpreter avec prudence.}
+\\fbox{Le contenu qui vous est proposé à lire ici est donc à interpréter avec prudence.}
 
 \\section*{Quelques chiffres}
-L'ensemble des contributions publiques déposées sur \\emph{granddebat.fr} représente un total de plus de 160 millions de mots (plus de 300 fois Les Misérables de Victor Hugo).\\newline
-Il faudrait plus de 4 ans et demi pour lire l'intégralité à raison de 8 heures par jours, 7 jours sur 7.
+L'ensemble des contributions publiques déposées sur \\emph{granddebat.fr} représente un total de plus de 160 millions de mots (soit plus de 300 fois Les Misérables de Victor Hugo).\\newline
+Il faudrait plus de quatre ans et demi pour lire l'intégralité à raison de 8 heures par jour, 7 jours sur 7.
 """ % ('Monsieur le député' if elu[2] == 'M' else 'Madame la députée',
        elu[0],
        elu[1],
@@ -165,12 +174,12 @@ if stats[0] > 0 or docs[0]>0:
         out("""\\textbf{%s} personnes ont déposé \\textbf{%s} contributions libres sur \\emph{granddebat.fr} """ % (stats[0], stats[1]))
         if ranks :
             out(""" ce qui place votre circonscription en \\textbf{%s\\textsuperscript{%s}} place dans le département et \\textbf{%s\\textsuperscript{%s}} place au niveau national."""
-                % (ranks[3], 'ème' if ranks[3] > 1 else 'ère',
-                ranks[2], 'ème' if ranks[2] > 1 else 'ère'))
+                % (ranks[3], 'e' if ranks[3] > 1 else 'ère',
+                ranks[2], 'e' if ranks[2] > 1 else 'ère'))
         out(' \\newline \\newline  ')
 
     if docs[0]>0:
-        out("""\\textbf{%s} document%s concernant \\textbf{%s} réunion%s sont aussi disponibles sur\\newline \\href{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}\\newline
+        out("""\\textbf{%s} document%s concernant \\textbf{%s} réunion%s dans votre circonscription sont aussi disponibles sur\\newline \\href{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}\\newline
 """ % (docs[0], 's' if docs[0] > 1 else '', docs[1], 's' if docs[1] > 1 else ''))
 
 
@@ -224,7 +233,7 @@ out("""
 \\hspace{0pt}\\vfill
 
 \\noindent
-\\rule{15cm}{0.25pt}
+\\rule{15cm}{0.25pt} \\newline
 Ce document a été généré automatiquement le \\today{} à l'aide du langage \\LaTeX{} et des outils et logiciels libres suivants:
 \\begin{itemize}
 \\item langage \\href{https://www.python.org/}{python}
