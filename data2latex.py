@@ -262,7 +262,7 @@ out("""
 \\hspace{0pt}\\vfill
 
 \\noindent
-\\rule{15cm}{0.25pt} \\newline
+\\rule{\\textwidth}{0.25pt} \\newline
 Ce document a été généré automatiquement le \\today{} à l'aide du langage \\LaTeX{} et des outils et logiciels libres suivants:
 \\begin{itemize}
 \\item langage \\href{https://www.python.org/}{python}
@@ -274,7 +274,7 @@ Le code produit durant le hackathon pour ce projet \\emph{"Grande Lecture"} est 
 \\newline
 \\textbf{Le temps total évalué pour sa lecture est d'au moins %s heures.}
 \\newline
-\\rule{15cm}{0.25pt}
+\\rule{\\textwidth}{0.25pt}
 
 \\vfill\\hspace{0pt}
 \\pagebreak
