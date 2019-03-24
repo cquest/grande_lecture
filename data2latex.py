@@ -38,11 +38,10 @@ def reponse2tex(gdebat):
         minutes = minutes + int(mots/150)
 
         #out('\\addcontentsline{toc}{section}{%s}' % (txt2tex(c['title']), ) + crlf)
-        out('\\needspace{3cm}')
-        out('\\section{%s}' % (txt2tex(c['title']), ) + crlf+crlf)
-        out('\\noindent Code postal: \\textbf{%s} - Déposée le : %s - N\\degree %s (lecture : %s min.)\\newline'
-            % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], c['reference'], int(mots/150)) + crlf+crlf)
-        prev = ''
+        out(crlf+'\\needspace{4cm}')
+        out('\\section{%s}' % (txt2tex(c['title']), ) + crlf)
+        out('Code postal déclaré : \\textbf{%s} - Déposée le : %s - N\\degree %s (lecture : %s min.)\\newline'
+            % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], c['reference'], int(mots/150)) + crlf)
         for q in c['responses']:
             if q['formattedValue']:
                 if (q['questionTitle'][:7] not in ['Si oui,','Pourquo']):
