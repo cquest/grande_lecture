@@ -43,21 +43,21 @@ def reponse2tex(gdebat):
         out('Code postal déclaré : \\textbf{%s} - Déposée le : %s - N\\degree %s (lecture : %s min.)\\newline'
             % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], c['reference'], int(mots/150)) + crlf)
         for q in c['responses']:
-            if q['formattedValue']:
-                if (q['questionTitle'][:7] not in ['Si oui,','Pourquo']):
-                    if prev in ['Oui','Non']:
-                        out('\\newline')
-                    out('\\needspace{2cm} \\noindent \\footnotesize{\\emph{%s}}' % txt2tex(q['questionTitle']))
-
-                if q['formattedValue'] in ['Oui','Non']:
-                    out('\\par \\noindent \\textbf{%s}' % txt2tex(q['formattedValue']))
-                else:
-                    if prev not in ['Oui','Non']:
-                        out('\\par \\noindent')
+            if q['formattedValue'] and q['formattedValue'].strip() != '':
+                if len(q['questionTitle']) >= 25 and q['questionTitle'] != 'Si oui, de quelle manière ?':
+                    # question longue
+                    out('\\needspace{2cm} \\footnotesize{\\emph{%s}}' % txt2tex(
+                        q['questionTitle']))
+                    # réponse oui/non
+                    if q['formattedValue'].lower() in ['oui', 'non']:
+                        out('\\textbf{%s}' % txt2tex(q['formattedValue'])+crlf)
                     else:
-                        out(', ')
-                    out('\\textbf{%s} \\newline' % txt2tex(q['formattedValue']).replace('. ','.\\newline '))
-            prev = q['formattedValue']
+                        out('\\par \\leftskip=0mm \\textbf{%s} \\par \\leftskip=0mm ' % txt2tex(
+                            q['formattedValue']).replace('. ', '.\\newline'+crlf))
+                else:
+                    # question courte... on la supprime
+                    out('\\leftskip=0mm \\textbf{%s} \\par \\leftskip=0mm ' % txt2tex(
+                        q['formattedValue']).replace('. ','.\\newline'+crlf))
 
 
 crlf = '\x0d\x0a'
