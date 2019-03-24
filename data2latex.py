@@ -214,8 +214,26 @@ for t in range(0, 4):
 
     gdebat = db.fetchall()
     reponse2tex(gdebat)
+    nb = len(gdebat)
     
-    if len(gdebat)<25:
+    if nb<25 and stats[0] == 0:
+        db.execute("""
+        SELECT * FROM (
+            SELECT      j::text
+            FROM        contrib c
+            WHERE       theme = %s AND length(c.j::text)<50000
+                        AND (authorzipcode < '01' OR authorzipcode > '97')
+            ORDER BY    random()
+            LIMIT       50 ) as c
+        GROUP BY 1
+        LIMIT %s
+        """, (str(t+1), 25-nb))
+
+        gdebat = db.fetchall()
+        reponse2tex(gdebat)
+        nb = nb + len(gdebat)
+
+    if nb<25:
         db.execute("""
         SELECT * FROM (
             SELECT      j::text
@@ -225,7 +243,7 @@ for t in range(0, 4):
             LIMIT       50 ) as c
         GROUP BY 1
         LIMIT %s
-        """, (str(t+1), 25-len(gdebat)))
+        """, (str(t+1), 25-nb))
 
         gdebat = db.fetchall()
         reponse2tex(gdebat)
