@@ -106,8 +106,8 @@ out("""\\documentclass[a4paper, 12pt]{book}
 \\setlength{\parindent}{0em}
 
 \\title{Grande Lecture pour le Grand Débat}
-\\author{Christian Quest}
-\\date{2019-03-23} 
+\\author{Christian Quest / Grande Lecture}
+\\date{\\today} 
 
 \\begin{document}
 {
