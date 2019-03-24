@@ -12,9 +12,8 @@ def txt2tex(md):
         md = md.encode('iso-8859-1','ignore').decode('iso-8859-1')
         t = md.replace('&amp;', ' \\& ').replace('&gt;', ' > ').replace('&lt;', ' < ')
         t = re.sub(r'([\&\%\$\#\_\{\}\~\^\\])', r'\\\1', t)
-        t = t.replace('«', ' \\og ').replace('»', ' \\fg ').replace('','')
-        t = t.replace('\n\n+', '\\par'+crlf)
-        t = t.replace('\n', '\\newline'+crlf)
+        t = t.replace('«', ' \\og ').replace('»', ' \\fg ')
+        t = re.sub(r' +([\.,])', r'\1', t)
         t = t[0].upper() + t[1:]
         return(t)
     else:
