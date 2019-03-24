@@ -187,15 +187,17 @@ out("""
 \\clearpage
 
 \\pagenumbering{roman}
-\\tableofcontents
-
-\\mainmatter
 \\pagestyle{fancy}
 \\fancyhf{}
 \\lhead{\\leftmark}
 \\lfoot{Grande Lecture}
 \\cfoot{\\thepage}
 \\rfoot{%s %s}
+
+\\tableofcontents
+
+\\mainmatter
+\\setlength{\parskip}{4pt}
 
 \\clearpage
 
