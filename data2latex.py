@@ -29,7 +29,7 @@ def reponse2tex(gdebat):
     global minutes
 
     for gd in gdebat:
-        c = gd[0]
+        c = json.loads(gd[0])
 
         #  comptage des mots des réponses
         mots = 0
@@ -200,12 +200,15 @@ minutes = 0
 for t in range(0, 4):
     out('\\chapter{%s} \\vspace{3cm}' % themes[t])
     db.execute("""
-    SELECT      c.*
-    FROM        elu_cp e
-    JOIN        contrib c ON (c.authorzipcode=e.code_postal)
-    WHERE       nom = %s AND theme = %s AND length(c.j::text)<50000
-    ORDER BY    random()
-    LIMIT       25
+    SELECT * FROM (
+        SELECT      j::text
+        FROM        elu_cp e
+        JOIN        contrib c ON (c.authorzipcode=e.code_postal)
+        WHERE       nom = %s AND theme = %s AND length(c.j::text)<50000
+        ORDER BY    random()
+        LIMIT       50) as c
+    GROUP BY 1
+    LIMIT 25
     """, (sys.argv[1], str(t+1)))
 
     gdebat = db.fetchall()
@@ -213,11 +216,14 @@ for t in range(0, 4):
     
     if len(gdebat)<25:
         db.execute("""
-        SELECT      c.*
-        FROM        contrib c
-        WHERE       theme = %s AND length(c.j::text)<50000
-        ORDER BY    random()
-        LIMIT       %s
+        SELECT * FROM (
+            SELECT      j::text
+            FROM        contrib c
+            WHERE       theme = %s AND length(c.j::text)<50000
+            ORDER BY    random()
+            LIMIT       50 ) as c
+        GROUP BY 1
+        LIMIT %s
         """, (str(t+1), 25-len(gdebat)))
 
         gdebat = db.fetchall()
