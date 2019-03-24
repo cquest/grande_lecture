@@ -60,6 +60,7 @@ def reponse2tex(gdebat):
                     out('\\leftskip=0mm \\textbf{%s} \\par \\leftskip=0mm ' % txt2tex(
                         q['formattedValue']).replace('. ','.\\newline'+crlf))
 
+nom = sys.argv[1].replace('_',' ')
 
 crlf = '\x0d\x0a'
 themes = ["Démocratie et citoyenneté",
@@ -70,20 +71,20 @@ themes = ["Démocratie et citoyenneté",
 pg = psycopg2.connect('dbname=grandelecture')
 db = pg.cursor()
 
-db.execute("SELECT prenom, nom, sexe FROM deputes WHERE nom = %s", (sys.argv[1],))
+db.execute("SELECT prenom, nom, sexe FROM deputes WHERE nom = %s", (nom,))
 elu = db.fetchone()
 
 db.execute("SELECT count(distinct(authorid)), count(*) FROM contrib JOIN elu_cp ON (authorzipcode=code_postal) WHERE nom = %s",
-           (sys.argv[1],))
+           (nom,))
 stats = db.fetchone()
 
 db.execute("SELECT r.* FROM deputes d NATURAL JOIN ranks r WHERE nom = %s",
-           (sys.argv[1],))
+           (nom,))
 ranks = db.fetchone()
 
 
 db.execute(
-    'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom=%s) e natural join documents d ', (sys.argv[1],))
+    'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom=%s) e natural join documents d ', (nom,))
 docs = db.fetchone()
 
 out("""\\documentclass[a4paper, 12pt]{book}
@@ -218,7 +219,7 @@ for t in range(0, 4):
         LIMIT       25) as c
     GROUP BY 1
     LIMIT 25
-    """, (sys.argv[1], str(t+1)))
+    """, (nom, str(t+1)))
 
     gdebat = db.fetchall()
     reponse2tex(gdebat)
