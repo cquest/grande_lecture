@@ -58,7 +58,7 @@ def reponse2tex(gdebat):
                         out('\\par \\noindent')
                     else:
                         out(', ')
-                    out('\\textbf{%s} \\newline' % txt2tex(q['formattedValue']))
+                    out('\\textbf{%s} \\newline' % txt2tex(q['formattedValue']).replace('. ','.\\newline '))
             prev = q['formattedValue']
 
 
