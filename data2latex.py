@@ -115,19 +115,21 @@ out("""\\documentclass[a4paper, 12pt]{book}
 \\frontmatter
 
 \\pagenumbering{gobble}
-\\begin{center}
-\\Huge
-\\noindent\\textbf{Grande Lecture\\newline
-du Grand Débat\\newline}
-\\newline
+
+\\vspace*{\\fill}
+{\\Huge
+\\textbf{Grande Lecture du Grand Débat\\newline}
+\\vspace{1cm}
+\\rule{\\textwidth}{0.25pt}
 Exemplaire personnel destiné à\\newline
 \\newline
 %s\\newline
 \\newline
 \\emph{\\textbf{%s %s}}\\newline
-\\end{center}
+}
+\\vspace*{\\fill}
 
-\\vspace{5cm}
+\\vfill
 \\noindent
 Ce document a été produit par l'équipe "Grande Lecture" lors du hackathon \\#HackGDN organisé à l'Assemblée Nationale le 23 mars 2019.\\par
 Il est publié sous Licence Ouverte 2.0 et a été lui-même produit à partir des données ouvertes (opendata) suivantes:
