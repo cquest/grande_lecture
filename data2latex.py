@@ -85,7 +85,7 @@ db.execute(
     'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom=%s) e natural join documents d ', (sys.argv[1],))
 docs = db.fetchone()
 
-print("""\\documentclass[a4paper, 12pt]{book}
+out("""\\documentclass[a4paper, 12pt]{book}
 \\usepackage[utf8]{inputenc}
 \\usepackage[french]{babel}
 \\usepackage{makeidx}
