@@ -214,7 +214,7 @@ for t in range(0, 4):
         JOIN        contrib c ON (c.authorzipcode=e.code_postal)
         WHERE       nom = %s AND theme = %s AND length(c.j::text)<50000
         ORDER BY    random()
-        LIMIT       50) as c
+        LIMIT       25) as c
     GROUP BY 1
     LIMIT 25
     """, (sys.argv[1], str(t+1)))
@@ -231,7 +231,7 @@ for t in range(0, 4):
             WHERE       theme = %s AND length(c.j::text)<50000
                         AND (authorzipcode < '01' OR authorzipcode > '97')
             ORDER BY    random()
-            LIMIT       50 ) as c
+            LIMIT       25 ) as c
         GROUP BY 1
         LIMIT %s
         """, (str(t+1), 25-nb))
@@ -247,7 +247,7 @@ for t in range(0, 4):
             FROM        contrib c
             WHERE       theme = %s AND length(c.j::text)<50000
             ORDER BY    random()
-            LIMIT       50 ) as c
+            LIMIT       25 ) as c
         GROUP BY 1
         LIMIT %s
         """, (str(t+1), 25-nb))
