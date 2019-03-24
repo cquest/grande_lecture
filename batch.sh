@@ -9,6 +9,7 @@ do
     python ../data2latex.py "$D" > "$D.tex" \
     && xelatex "$D.tex" \
     && xelatex "$D.tex" \
-    && mv "$D.pdf" ../pdf
+    && mv "$D.pdf" ../pdf \
+    && rm "$D.*"
   fi
 done
