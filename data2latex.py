@@ -41,8 +41,8 @@ def reponse2tex(gdebat):
         #out('\\addcontentsline{toc}{section}{%s}' % (txt2tex(c['title']), ) + crlf)
         out('\\needspace{3cm}')
         out('\\section{%s}' % (txt2tex(c['title']), ) + crlf+crlf)
-        out('\\noindent Code postal: \\textbf{%s} - Déposée le : %s  (lecture : %s min.)\\newline'
-            % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], int(mots/150)) + crlf+crlf)
+        out('\\noindent Code postal: \\textbf{%s} - Déposée le : %s - N\\degree %s (lecture : %s min.)\\newline'
+            % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], c['reference'], int(mots/150)) + crlf+crlf)
         prev = ''
         for q in c['responses']:
             if q['formattedValue']:
@@ -93,6 +93,7 @@ print("""\\documentclass[a4paper, 12pt]{book}
 \\usepackage{makeidx}
 \\usepackage{hyperref}
 \\usepackage{needspace}
+\\usepackage{gensymb}
 \\usepackage{fancyhdr}
 \\hypersetup{
     colorlinks=true,
