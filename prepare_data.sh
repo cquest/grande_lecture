@@ -48,3 +48,15 @@ alter table contrib add theme text;
 update contrib set (authorid,authorzipcode,theme) = (j->>'authorId', j->>'authorZipCode', left(j->>'reference',1));
 create index on contrib (authorzipcode);
 "
+
+#  Classement des participations par circo/dep
+psql grandelecture -c "create MATERIALIZED VIEW ranks as select dep,circo, rank() over (ORDER BY count(distinct(authorid)) DESC) rank_fr, rank() over (partition by dep||circo ORDER BY count(distinct(authorid)) DESC) rank_dep, count(distinct(authorid)), count(distinct(j->>'id')) as nb_contrib from contrib join elu_cp on (code_postal=authorzipcode) group by dep,circo;"
+
+#  Annotations
+psql grandelecture -c "
+drop table if exists annotations ;
+create table annotations (theme text, ref text, question text, tag text, annotateur int, poids float);
+create index on annotations (question);
+"
+psql grandelecture -c "\copy annotations from 'actions/actions.csv' with (format csv, header true)"
+
