@@ -99,7 +99,7 @@ out("""\\documentclass[a4paper, 12pt]{book}
     filecolor=magenta,      
     urlcolor=blue,
 }
-
+\\usepackage{fancyhdr}
 
 \\usepackage{geometry}
 \\geometry{a4paper, portrait, margin=25mm}
@@ -189,10 +189,16 @@ out("""
 \\tableofcontents
 
 \\mainmatter
+\\pagestyle{fancy}
+\\fancyhf{}
+\\lhead{\\leftmark}
+\\lfoot{Grande Lecture}
+\\cfoot{\\thepage}
+\\rfoot{%s %s}
 
 \\clearpage
 
-""")
+""" % (elu[0], elu[1]))
 
 
 minutes = 0
