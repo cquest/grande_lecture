@@ -104,7 +104,7 @@ out("""\\documentclass[a4paper, 12pt]{book}
 \\usepackage{geometry}
 \\geometry{a4paper, portrait, margin=25mm}
 \\setlength{\parindent}{0em}
-
+\\setlength{\parskip}{4pt}
 
 \\title{Grande Lecture pour le Grand Débat}
 \\author{Christian Quest}
