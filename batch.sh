@@ -10,6 +10,6 @@ do
     && xelatex "$D.tex" \
     && xelatex "$D.tex" \
     && mv "$D.pdf" ../pdf \
-    && rm "$D.*"
+    && rm "$D".*
   fi
 done
