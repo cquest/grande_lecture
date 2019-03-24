@@ -132,12 +132,12 @@ Exemplaire personnel destiné à\\newline
 \\vfill
 \\noindent
 Ce document a été produit par l'équipe "Grande Lecture" lors du hackathon \\#HackGDN organisé à l'Assemblée Nationale le 23 mars 2019.\\par
-Il est publié sous Licence Ouverte 2.0 et a été lui-même produit à partir des données ouvertes (opendata) suivantes:
+Il est publié sous \\href{https://www.etalab.gouv.fr/licence-ouverte-open-licence}{\\textbf{Licence Ouverte 2.0}} et a été lui-même produit à partir des \\textbf{données ouvertes} (opendata) suivantes:
 \\begin{itemize}
-    \\item données ouvertes du site granddebat.fr (Licence Ouverte)
-    \\item base officielle des codes postaux (source: La Poste, sous licence ODbL 1.0)
-    \\item table de correspondance des circonscriptions législatives (Ministère de l'Intérieur, Licence Ouverte)
-    \\item le Répertoire National des Élus (Ministère de l'Intérieur, Licence Ouverte)
+    \\item données ouvertes du site \\href{http://granddebat.fr}{\\emph{granddebat.fr}} (Licence Ouverte)
+    \\item \\href{https://www.data.gouv.fr/fr/datasets/base-officielle-des-codes-postaux/}{base officielle des codes postaux} (source: La Poste, sous licence ODbL 1.0)
+    \\item \\href{https://www.data.gouv.fr/fr/datasets/circonscriptions-legislatives-table-de-correspondance-des-communes-et-des-cantons-pour-les-elections-legislatives-de-2012-et-sa-mise-a-jour-pour-les-elections-legislatives-2017/}{table de correspondance des circonscriptions législatives} (Ministère de l'Intérieur, Licence Ouverte)
+    \\item le \\href{https://www.data.gouv.fr/fr/datasets/5c34c4d1634f4173183a64f1}{Répertoire National des Élus} (Ministère de l'Intérieur, Licence Ouverte)
 \\end{itemize}
 \\pagebreak
 \\section*{Préambule}
