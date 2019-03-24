@@ -10,6 +10,7 @@ def txt2tex(md):
     if md:
         # guillemets
         md = md.encode('iso-8859-1','ignore').decode('iso-8859-1')
+        md = "".join(i for i in md if 31 < ord(i))
         t = md.replace('&amp;', ' \\& ').replace('&gt;', ' > ').replace('&lt;', ' < ')
         t = re.sub(r'([\&\%\$\#\_\{\}\~\^\\])', r'\\\1', t)
         t = t.replace('«', ' \\og ').replace('»', ' \\fg ')
