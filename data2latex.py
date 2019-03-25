@@ -49,8 +49,10 @@ def reponse2tex(gdebat):
         out('\\section{%s}' % (txt2tex(c['title']), ) + crlf)
         out('\\begin{center}\\normalsize{Code postal déclaré : \\textbf{%s} - Déposée le : %s - N\\degree %s (lecture : %s min.)}\\end{center}'
             % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], c['reference'], int(mots/150)) + crlf)
+        nbrep = 0
         for q in c['responses']:
             if q['formattedValue'] and q['formattedValue'].strip() != '':
+                nbrep = nbrep + 1
                 if len(q['questionTitle']) >= 25 and q['questionTitle'] != 'Si oui, de quelle manière ?':
                     # question longue
                     out('\\needspace{2cm} \\footnotesize{\\emph{%s}}' % txt2tex(
@@ -65,6 +67,8 @@ def reponse2tex(gdebat):
                     # question courte... on la supprime
                     out('\\leftskip=0mm \\textbf{%s} \\par \\leftskip=0mm ' % txt2tex(
                         q['formattedValue']).replace('. ','.\\newline'+crlf))
+        if nbrep == 0:
+            out('\\emph{Aucune réponse donnée aux questions proposées.}')
 
 nom = sys.argv[1].replace('_',' ')
 
