@@ -250,7 +250,7 @@ for t in range(0, 4):
             FROM        elu_cp e
             JOIN        contrib c ON (c.authorzipcode=e.code_postal)
             NATURAL LEFT JOIN contrib_depute
-            WHERE       nom = %s AND left(reference,1) = %s AND length(c.j::text)<50000
+            WHERE       nom = %s AND reference LIKE %s||'%%' AND length(c.j::text)<50000
                         AND contrib_depute.nom is NULL
             ORDER BY    random()
             LIMIT       25) as c
@@ -275,7 +275,7 @@ for t in range(0, 4):
             SELECT      j
             FROM        contrib c
             NATURAL LEFT JOIN contrib_depute
-            WHERE       left(reference,1) = %s AND length(c.j::text)<50000
+            WHERE       reference LIKE %s||'%%' AND length(c.j::text)<50000
                         AND (authorzipcode < '01' OR authorzipcode > '97')
                         AND contrib_depute.nom is NULL
             ORDER BY    random()
@@ -301,7 +301,7 @@ for t in range(0, 4):
             SELECT      j
             FROM        contrib c
             NATURAL LEFT JOIN contrib_depute
-            WHERE       left(reference,1) = %s AND length(c.j::text)<50000
+            WHERE       reference LIKE %s||'%%' AND length(c.j::text)<50000
                         AND contrib_depute.nom is NULL
             ORDER BY    random()
             LIMIT       25 ) as c
