@@ -50,7 +50,7 @@ create index on contrib (authorzipcode);
 "
 
 #  Classement des participations par circo/dep
-psql grandelecture -c "create MATERIALIZED VIEW ranks as select dep,circo, rank() over (ORDER BY count(distinct(authorid)) DESC) rank_fr, rank() over (partition by dep||circo ORDER BY count(distinct(authorid)) DESC) rank_dep, count(distinct(authorid)), count(distinct(j->>'id')) as nb_contrib from contrib join elu_cp on (code_postal=authorzipcode) group by dep,circo;"
+psql grandelecture -c "create MATERIALIZED VIEW ranks as select dep,circo, rank() over (ORDER BY count(distinct(authorid)) DESC) rank_fr, rank() over (partition by dep ORDER BY count(distinct(authorid)) DESC) rank_dep, count(distinct(authorid)), count(distinct(j->>'id')) as nb_contrib from contrib join elu_cp on (code_postal=authorzipcode) group by dep,circo;"
 
 #  Annotations
 psql grandelecture -c "
