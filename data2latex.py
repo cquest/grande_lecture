@@ -107,7 +107,7 @@ out("""\\documentclass[a4paper, 10pt]{book}
 \\usepackage{fancyhdr}
 \\hypersetup{
     colorlinks=true,
-    linkcolor=blue,
+    linkcolor=black,
     filecolor=magenta,      
     urlcolor=blue,
 }
