@@ -44,11 +44,16 @@ done
 psql grandelecture -c "
 alter table contrib add authorid text;
 alter table contrib add authorzipcode text;
-alter table contrib add theme text;
-update contrib set (authorid,authorzipcode,theme) = (j->>'authorId', j->>'authorZipCode', left(j->>'reference',1));
+alter table contrib add reference text;
+update contrib set (authorid,authorzipcode,reference) = (j->>'authorId', j->>'authorZipCode', j->>'reference');
 create index on contrib (authorzipcode);
 "
 
+#  qui lit quoi
+psql grandelecture -c "
+CREATE TABLE contrib_depute (reference text, nom text);
+CREATE INDEX ON contrib_depute (nom);
+"
 #  Classement des participations par circo/dep
 psql grandelecture -c "create MATERIALIZED VIEW ranks as select dep,circo, rank() over (ORDER BY count(distinct(authorid)) DESC) rank_fr, rank() over (partition by dep ORDER BY count(distinct(authorid)) DESC) rank_dep, count(distinct(authorid)), count(distinct(j->>'id')) as nb_contrib from contrib join elu_cp on (code_postal=authorzipcode) group by dep,circo;"
 
