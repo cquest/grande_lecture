@@ -8,10 +8,16 @@ import psycopg2
 
 def txt2tex(md):
     if md:
-        # guillemets
+        # single/double quotes...
+        md = md.replace("’", "'").replace(
+            "‘", "'").replace('“', '"').replace('”','"')
+        # non ISO
         md = md.encode('iso-8859-1','ignore').decode('iso-8859-1')
+        # contrôle
         md = "".join(i for i in md if 31 < ord(i))
+        # HTML
         t = md.replace('&amp;', ' \\& ').replace('&gt;', ' > ').replace('&lt;', ' < ')
+
         t = re.sub(r'([\&\%\$\#\_\{\}\~\^\\])', r'\\\1', t)
         t = t.replace('«', ' \\og ').replace('»', ' \\fg ')
         t = re.sub(r' +([\.,])', r'\1', t)
