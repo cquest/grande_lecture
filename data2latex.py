@@ -164,14 +164,6 @@ Par respect pour ces citoyens, nous vous demandons de prendre le temps de lire v
 \\newline
 Les pages suivantes contiennent une sélection aléatoire d'une centaine de contributions, 25 pour chacun des quatre thèmes, sélectionnées dans votre circonscription.
 
-\\subsection*{Mise en garde}
-
-Différentes analyses ont montré la très faible représentativité des contributions faites sur chacun des espaces où le Grand Débat a pu avoir lieu (sur le site officiel, sur des sites alternatifs, par courrier ou dans des réunions locales).\\newline
-\\newline
-À titre d'exemple, sur certaines circonscriptions législatives, le nombre de citoyens ayant déposé une contribution sur \\emph{granddebat.fr} varie dans un rapport de 50 (de moins d'une centaine à plus de 3000) !\\newline
-\\newline
-\\fbox{Le contenu qui vous est proposé à lire ici est donc à interpréter avec prudence.}
-
 \\section*{Quelques chiffres}
 L'ensemble des contributions publiques déposées sur \\emph{granddebat.fr} représente un total de plus de 160 millions de mots (soit plus de 300 fois Les Misérables de Victor Hugo).\\newline
 Il faudrait plus de quatre ans et demi pour lire l'intégralité à raison de 8 heures par jour, 7 jours sur 7.
@@ -191,11 +183,30 @@ if stats[0] > 0 or docs[0]>0:
         out(' \\newline \\newline  ')
 
     if docs[0]>0:
-        out("""\\textbf{%s} document%s concernant \\textbf{%s} réunion%s dans votre circonscription sont aussi disponibles sur\\newline \\href{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}\\newline
+        out("""\\textbf{%s} document%s concernant \\textbf{%s} réunion%s dans votre circonscription sont aussi disponibles\\newline sur \\href{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}{https://granddebat.fr/pages/comptes-rendus-des-reunions-locales}
 """ % (docs[0], 's' if docs[0] > 1 else '', docs[1], 's' if docs[1] > 1 else ''))
 
 
 out("""
+\\section*{Mise en garde}
+
+Différentes analyses ont montré la très faible représentativité des contributions faites sur chacun des espaces où le Grand Débat a pu avoir lieu (sur le site officiel, sur des sites alternatifs, par courrier ou dans des réunions locales).\\newline
+\\newline
+À titre d'exemple, sur certaines circonscriptions législatives, le nombre de citoyens ayant déposé une contribution sur \\emph{granddebat.fr} varie dans un rapport de 50 (de moins d'une centaine à plus de 3000) !\\newline
+\\newline
+\\begin{center}
+\\fbox{Le contenu qui vous est proposé à lire ici est donc à interpréter avec prudence.}
+\\newline
+\\newline
+\\Large{\\emph{Bonne lecture !}}
+\\end{center}
+
+\\vfill
+
+\\begin{center}
+    \\Large{\\textbf{\\href{www.grande-lecture.fr}{www.grande-lecture.fr}}}
+\\end{center}
+
 \\clearpage
 
 \\pagenumbering{roman}
