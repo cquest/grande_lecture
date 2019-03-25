@@ -213,7 +213,7 @@ Différentes analyses ont montré la très faible représentativité des contrib
 \\pagestyle{fancy}
 \\fancyhf{}
 \\lhead{\\leftmark}
-\\lfoot{Grande Lecture}
+\\lfoot{www.grande-lecture.fr}
 \\cfoot{\\thepage}
 \\rfoot{%s %s}
 
@@ -303,6 +303,11 @@ Le code produit durant le hackathon pour ce projet \\emph{"Grande Lecture"} est 
 \\rule{\\textwidth}{0.25pt}
 
 \\vfill\\hspace{0pt}
+
+\\begin{center}
+\\Large{\\textbf{\\href{www.grande-lecture.fr}{www.grande-lecture.fr}}}
+\\end{center}
+
 \\pagebreak
 
 }
