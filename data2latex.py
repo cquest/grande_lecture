@@ -47,7 +47,7 @@ def reponse2tex(gdebat):
         #out('\\addcontentsline{toc}{section}{%s}' % (txt2tex(c['title']), ) + crlf)
         out(crlf+'\\needspace{4cm}')
         out('\\section{%s}' % (txt2tex(c['title']), ) + crlf)
-        out('Code postal déclaré : \\textbf{%s} - Déposée le : %s - N\\degree %s (lecture : %s min.)\\newline'
+        out('\\begin{center}\\normalsize{Code postal déclaré : \\textbf{%s} - Déposée le : %s - N\\degree %s (lecture : %s min.)}\\end{center}'
             % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], c['reference'], int(mots/150)) + crlf)
         for q in c['responses']:
             if q['formattedValue'] and q['formattedValue'].strip() != '':
