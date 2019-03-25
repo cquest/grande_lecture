@@ -229,54 +229,99 @@ Différentes analyses ont montré la très faible représentativité des contrib
 
 minutes = 0
 for t in range(0, 4):
-    out('\\chapter{%s} \\vspace{3cm}' % themes[t])
+    #  sélection et stockage des contributions tirées au sort de façon unique
     db.execute("""
     SELECT * FROM (
         SELECT      j::text
-        FROM        elu_cp e
-        JOIN        contrib c ON (c.authorzipcode=e.code_postal)
-        WHERE       nom = %s AND theme = %s AND length(c.j::text)<50000
-        ORDER BY    random()
-        LIMIT       25) as c
+        FROM        contrib_depute ce
+        NATURAL JOIN contrib c
+        WHERE       ce.nom = %s AND reference LIKE %s||'%%'
+        ) as c
     GROUP BY 1
-    LIMIT 25
-    """, (nom, str(t+1)))
-
+    """, (nom, str(t+1),))
     gdebat = db.fetchall()
-    reponse2tex(gdebat)
-    nb = len(gdebat)
-    
-    if nb<25 and stats[0] == 0:
+    manque = 25 - len(gdebat)
+
+    if manque > 0:
+        db.execute("""
+        INSERT INTO contrib_depute SELECT j->>'reference', %s FROM (
+            SELECT      j
+            FROM        elu_cp e
+            JOIN        contrib c ON (c.authorzipcode=e.code_postal)
+            NATURAL LEFT JOIN contrib_depute
+            WHERE       nom = %s AND left(reference,1) = %s AND length(c.j::text)<50000
+                        AND contrib_depute.nom is NULL
+            ORDER BY    random()
+            LIMIT       25) as c
+        GROUP BY 1
+        LIMIT %s; commit;
+        """, (nom, nom, str(t+1), manque))
         db.execute("""
         SELECT * FROM (
             SELECT      j::text
+            FROM        contrib_depute ce 
+            NATURAL JOIN contrib c
+            WHERE       ce.nom = %s AND reference LIKE %s||'%%'
+            ) as c
+        GROUP BY 1
+        """, (nom, str(t+1),))
+        gdebat = db.fetchall()
+        manque = manque - len(gdebat)
+
+    if manque > 0 and stats[0] == 0:
+        db.execute("""
+        INSERT INTO contrib_depute SELECT j->>'reference', %s FROM (
+            SELECT      j
             FROM        contrib c
-            WHERE       theme = %s AND length(c.j::text)<50000
+            NATURAL LEFT JOIN contrib_depute
+            WHERE       left(reference,1) = %s AND length(c.j::text)<50000
                         AND (authorzipcode < '01' OR authorzipcode > '97')
+                        AND contrib_depute.nom is NULL
             ORDER BY    random()
             LIMIT       25 ) as c
         GROUP BY 1
-        LIMIT %s
-        """, (str(t+1), 25-nb))
-
-        gdebat = db.fetchall()
-        reponse2tex(gdebat)
-        nb = nb + len(gdebat)
-
-    if nb<25:
+        LIMIT %s; commit;
+        """, (nom, str(t+1), manque))
         db.execute("""
         SELECT * FROM (
             SELECT      j::text
+            FROM        contrib_depute ce 
+            NATURAL JOIN contrib c
+            WHERE       ce.nom = %s AND reference LIKE %s||'%%'
+            ) as c
+        GROUP BY 1
+        """, (nom, str(t+1),))
+        gdebat = db.fetchall()
+        manque = manque - len(gdebat)
+
+    if manque > 0:
+        db.execute("""
+        INSERT INTO contrib_depute SELECT j->>'reference', %s FROM (
+            SELECT      j
             FROM        contrib c
-            WHERE       theme = %s AND length(c.j::text)<50000
+            NATURAL LEFT JOIN contrib_depute
+            WHERE       left(reference,1) = %s AND length(c.j::text)<50000
+                        AND contrib_depute.nom is NULL
             ORDER BY    random()
             LIMIT       25 ) as c
         GROUP BY 1
-        LIMIT %s
-        """, (str(t+1), 25-nb))
-
+        LIMIT %s; commit;
+        """, (nom, str(t+1), manque))
+        db.execute("""
+        SELECT * FROM (
+            SELECT      j::text
+            FROM        contrib_depute ce
+            NATURAL JOIN contrib c
+            WHERE       ce.nom = %s AND reference LIKE %s||'%%'
+            ) as c
+        GROUP BY 1
+        """, (nom, str(t+1),))
         gdebat = db.fetchall()
-        reponse2tex(gdebat)
+
+    out('\\chapter{%s} \\vspace{3cm}' % themes[t])
+    if len(gdebat) != 25:
+        exit()
+    reponse2tex(gdebat)
 
 
 out("""
