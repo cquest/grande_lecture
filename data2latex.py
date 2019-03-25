@@ -61,11 +61,11 @@ def reponse2tex(gdebat):
                     if q['formattedValue'].lower() in ['oui', 'non']:
                         out('\\textbf{%s}' % txt2tex(q['formattedValue'])+crlf)
                     else:
-                        out('\\par \\leftskip=0mm \\textbf{%s} \\par \\leftskip=0mm ' % txt2tex(
+                        out('\\par \\small{\\textbf{%s}} \\par ' % txt2tex(
                             q['formattedValue']).replace('. ', '.\\newline'+crlf))
                 else:
                     # question courte... on la supprime
-                    out('\\leftskip=0mm \\textbf{%s} \\par \\leftskip=0mm ' % txt2tex(
+                    out('\\small{\\textbf{%s}} \\par ' % txt2tex(
                         q['formattedValue']).replace('. ','.\\newline'+crlf))
         if nbrep == 0:
             out('\\emph{Aucune réponse donnée aux questions proposées.}')
@@ -97,7 +97,7 @@ db.execute(
     'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom=%s) e natural join documents d ', (nom,))
 docs = db.fetchone()
 
-out("""\\documentclass[a4paper, 12pt]{book}
+out("""\\documentclass[a4paper, 10pt]{book}
 \\usepackage[utf8]{inputenc}
 \\usepackage[french]{babel}
 \\usepackage{makeidx}
