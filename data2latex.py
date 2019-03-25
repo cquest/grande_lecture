@@ -21,7 +21,8 @@ def txt2tex(md):
         t = re.sub(r'([\&\%\$\#\_\{\}\~\^\\])', r'\\\1', t)
         t = t.replace('«', ' \\og ').replace('»', ' \\fg ')
         t = re.sub(r' +([\.,])', r'\1', t)
-        t = t[0].upper() + t[1:]
+        if len(t)>1:
+            t = t[0].upper() + t[1:]
         return(t)
     else:
         return ''
