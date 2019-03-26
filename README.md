@@ -2,6 +2,15 @@
 
 **Projet visant à faciliter la lecture par les élus des contributions publiques déposées sur le site officiel granddebat.fr**
 
+## Accès aux résultat
+
+Une carte uMap est disponible (à compléter, il manque DOM et circonscriptions des français de l'étranger):
+
+https://umap.openstreetmap.fr/fr/map/la-grande-lecture-du-grand-debat-en-carte_307358
+
+Les fichiers générés sont accessibles sur:
+- Format PDF: http://www.grande-lecture.fr/pdf/
+- Firmat LaTeX: http://www.grande-lecture.fr/tex/
 
 ## Pourquoi ?
 
