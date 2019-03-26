@@ -31,6 +31,13 @@ csvcut 8-rne-deputes.txt -t -e iso8859-1 -c 1,3,5,6,7 -K 1 > deputes.csv
 psql grandelecture -c "create table deputes (dep text, circo text, nom text, prenom text, sexe text)"
 psql grandelecture -c "\copy deputes from deputes.csv with (format csv, header true)"
 
+# correction code INSEE des arrondissements municipaux Paris/Lyon/Marseille
+psql grandelecture -c "
+update cp set code_commune_insee = '13055' where code_postal >= '13001' and code_postal<='13016';
+update cp set code_commune_insee = '69123' where code_postal >= '69001' and code_postal<='69009';
+update cp set code_commune_insee = '75056' where code_postal LIKE '75%';
+"
+
 # vue élu + email / circo / commune / cp
 psql grandelecture -c "create view elu_cp as select dep,circo,nom,prenom,sexe,code_commune,code_postal,lower(format('%s.%s@assemblee-nationale.fr',replace(unaccent(prenom),' ',''),replace(unaccent(nom),' ',''))) as email from deputes d join circo c on (code_dpt=dep and code_circ_legislative=circo) join cp on (code_commune_insee=code_commune) ;"
 
