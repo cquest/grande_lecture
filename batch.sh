@@ -12,7 +12,7 @@ do
     && xelatex "$D.tex" \
     && xelatex "$D.tex" \
     && mv "$D.pdf" ../pdf \
-    && mv "$D.tex" ../tex \
+    && gzip -9 "$D.tex" && mv "$D.tex.gz" ../tex \
     && rm "$D".*
   fi
 
