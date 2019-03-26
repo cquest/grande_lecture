@@ -49,7 +49,7 @@ def reponse2tex(gdebat):
         out(crlf+'\\needspace{4cm}')
         out('\\section{%s}' % (txt2tex(c['title']), ) + crlf)
         out('\\begin{center}\\normalsize{Code postal déclaré : \\textbf{%s} - Déposée le : %s - N\\degree %s (lecture : %s min.)}\\end{center}'
-            % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], c['reference'], int(mots/150)) + crlf)
+            % (txt2tex(c['authorZipCode']), c['publishedAt'][:10], c['reference'], int(mots/150) if mots>150 else 'moins de 1') + crlf)
         nbrep = 0
         for q in c['responses']:
             if q['formattedValue'] and q['formattedValue'].strip() != '':
