@@ -71,7 +71,9 @@ def reponse2tex(gdebat):
         if nbrep == 0:
             out('\\emph{Aucune réponse donnée aux questions proposées.}')
 
-nom = sys.argv[1].replace('_',' ')
+params = sys.argv[1].replace('_',' ').split(',')
+nom = params[0]
+prenom=params[1]
 
 crlf = '\x0d\x0a'
 themes = ["Démocratie et citoyenneté",
@@ -82,20 +84,20 @@ themes = ["Démocratie et citoyenneté",
 pg = psycopg2.connect('dbname=grandelecture')
 db = pg.cursor()
 
-db.execute("SELECT prenom, nom, sexe FROM deputes WHERE nom = %s", (nom,))
+db.execute("SELECT prenom, nom, sexe FROM deputes WHERE nom = %s AND prenom = %s", (nom,prenom))
 elu = db.fetchone()
 
-db.execute("SELECT count(distinct(authorid)), count(*) FROM contrib JOIN elu_cp ON (authorzipcode=code_postal) WHERE nom = %s",
-           (nom,))
+db.execute("SELECT count(distinct(authorid)), count(*) FROM contrib JOIN elu_cp ON (authorzipcode=code_postal) WHERE nom = %s and prenom = %s",
+           (nom,prenom))
 stats = db.fetchone()
 
-db.execute("SELECT r.* FROM deputes d NATURAL JOIN ranks r WHERE nom = %s",
-           (nom,))
+db.execute("SELECT r.* FROM deputes d NATURAL JOIN ranks r WHERE nom = %s AND prenom = %s",
+           (nom,prenom))
 ranks = db.fetchone()
 
 
 db.execute(
-    'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom=%s) e natural join documents d ', (nom,))
+    'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom = %s and prenom = %s) e natural join documents d ', (nom, prenom))
 docs = db.fetchone()
 
 out("""\\documentclass[a4paper, 10pt]{book}
@@ -236,42 +238,42 @@ for t in range(0, 4):
         SELECT      j::text
         FROM        contrib_depute ce
         NATURAL JOIN contrib c
-        WHERE       ce.nom = %s AND reference LIKE %s||'%%'
+        WHERE       ce.nom = %s and ce.prenom = %s AND reference LIKE %s||'%%'
         ) as c
     GROUP BY 1
-    """, (nom, str(t+1),))
+    """, (nom, prenom, str(t+1),))
     gdebat = db.fetchall()
     manque = 25 - len(gdebat)
 
     if manque > 0:
         db.execute("""
-        INSERT INTO contrib_depute SELECT j->>'reference', %s FROM (
+        INSERT INTO contrib_depute SELECT j->>'reference', %s, %s FROM (
             SELECT      j
             FROM        elu_cp e
             JOIN        contrib c ON (c.authorzipcode=e.code_postal)
             NATURAL LEFT JOIN contrib_depute
-            WHERE       nom = %s AND reference LIKE %s||'%%' AND length(c.j::text)<50000
+            WHERE       nom = %s AND prenom = %s AND reference LIKE %s||'%%' AND length(c.j::text)<50000
                         AND contrib_depute.nom is NULL
             ORDER BY    random()
             LIMIT       25) as c
         GROUP BY 1
         LIMIT %s; commit;
-        """, (nom, nom, str(t+1), manque))
+        """, (nom, prenom, nom, prenom, str(t+1), manque))
         db.execute("""
         SELECT * FROM (
             SELECT      j::text
             FROM        contrib_depute ce 
             NATURAL JOIN contrib c
-            WHERE       ce.nom = %s AND reference LIKE %s||'%%'
+            WHERE       ce.nom = %s and ce.prenom = %s AND reference LIKE %s||'%%'
             ) as c
         GROUP BY 1
-        """, (nom, str(t+1),))
+        """, (nom, prenom, str(t+1),))
         gdebat = db.fetchall()
         manque = manque - len(gdebat)
 
     if manque > 0 and stats[0] == 0:
         db.execute("""
-        INSERT INTO contrib_depute SELECT j->>'reference', %s FROM (
+        INSERT INTO contrib_depute SELECT j->>'reference', %s, %s FROM (
             SELECT      j
             FROM        contrib c
             NATURAL LEFT JOIN contrib_depute
@@ -282,22 +284,22 @@ for t in range(0, 4):
             LIMIT       25 ) as c
         GROUP BY 1
         LIMIT %s; commit;
-        """, (nom, str(t+1), manque))
+        """, (nom, prenom, str(t+1), manque))
         db.execute("""
         SELECT * FROM (
             SELECT      j::text
             FROM        contrib_depute ce 
             NATURAL JOIN contrib c
-            WHERE       ce.nom = %s AND reference LIKE %s||'%%'
+            WHERE       ce.nom = %s and ce.prenom = %s AND reference LIKE %s||'%%'
             ) as c
         GROUP BY 1
-        """, (nom, str(t+1),))
+        """, (nom, prenom, str(t+1),))
         gdebat = db.fetchall()
         manque = manque - len(gdebat)
 
     if manque > 0:
         db.execute("""
-        INSERT INTO contrib_depute SELECT j->>'reference', %s FROM (
+        INSERT INTO contrib_depute SELECT j->>'reference', %s, %s FROM (
             SELECT      j
             FROM        contrib c
             NATURAL LEFT JOIN contrib_depute
@@ -307,16 +309,16 @@ for t in range(0, 4):
             LIMIT       25 ) as c
         GROUP BY 1
         LIMIT %s; commit;
-        """, (nom, str(t+1), manque))
+        """, (nom, prenom, str(t+1), manque))
         db.execute("""
         SELECT * FROM (
             SELECT      j::text
             FROM        contrib_depute ce
             NATURAL JOIN contrib c
-            WHERE       ce.nom = %s AND reference LIKE %s||'%%'
+            WHERE       ce.nom = %s and ce.prenom = %s AND reference LIKE %s||'%%'
             ) as c
         GROUP BY 1
-        """, (nom, str(t+1),))
+        """, (nom, prenom, str(t+1),))
         gdebat = db.fetchall()
 
     out('\\chapter{%s} \\vspace{3cm}' % themes[t])
