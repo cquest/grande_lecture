@@ -2,7 +2,7 @@
 
 **Projet visant à faciliter la lecture par les élus des contributions publiques déposées sur le site officiel granddebat.fr**
 
-## Accès aux résultat
+## Accès aux résultats
 
 Une carte uMap est disponible (à compléter, il manque DOM et circonscriptions des français de l'étranger):
 
@@ -10,7 +10,7 @@ https://umap.openstreetmap.fr/fr/map/la-grande-lecture-du-grand-debat-en-carte_3
 
 Les fichiers générés sont accessibles sur:
 - Format PDF: http://www.grande-lecture.fr/pdf/
-- Firmat LaTeX: http://www.grande-lecture.fr/tex/
+- Format LaTeX: http://www.grande-lecture.fr/tex/
 
 ## Pourquoi ?
 
@@ -44,8 +44,8 @@ Pour les députés, ce fichier PDF leur sera envoyé directement par courrier é
 
 ## Le code et les outils...
 
-Toutes les données sont importées dans une base postgresql et des vues sont crées pour faire le lien entre les sources de données.
+Les données sont préparées avec jq et csvkit et gdal/ogr puis elles sont importées dans une base postgresql et des vues sont crées pour faire le lien entre les sources de données.
 
-Un script python génère les fichiers PDF à l'aide du langage LaTeX.
+Un script python génère des fichiers LaTeX qui sont ensuite compilés pour générer les fichiers PDF.
 
 L'envoi des emails peut s'automatiser avec un script bash ou python.
