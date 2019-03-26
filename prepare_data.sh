@@ -72,3 +72,5 @@ create index on annotations (question);
 "
 psql grandelecture -c "\copy annotations from 'actions/actions.csv' with (format csv, header true)"
 
+# sortie pour umap
+psql grandelecture -c "\copy (select dep, circo, prenom, nom, format('%s,%s',replace(nom,' ','_'),replace(prenom,' ','_')) as url, st_x(st_centroid(st_collect(geom))) as longitude, st_y(st_centroid(st_collect(geom))) as latitude from elu_cp e natural join cp group by 1,2,3,4,5) to umap_deputes.csv with (format csv, header true)"
