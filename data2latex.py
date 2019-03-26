@@ -10,7 +10,7 @@ def txt2tex(md):
     if md:
         # single/double quotes...
         md = md.replace("’", "'").replace(
-            "‘", "'").replace('“', '"').replace('”','"')
+            "‘", "'").replace('“', '"').replace('”','"').replace('^',' ')
         # non ISO
         md = md.encode('iso-8859-1','ignore').decode('iso-8859-1')
         # contrôle
