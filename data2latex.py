@@ -165,7 +165,7 @@ Ce projet de \\emph{Grande Lecture} a pour but de répondre partiellement à ce 
 \\newline
 Par respect pour ces citoyens, nous vous demandons de prendre le temps de lire vous-même ces quelques contributions, qui ne représentent finalement qu'une infime partie des ce qui a été exprimé.\\newline
 \\newline
-Les pages suivantes contiennent une sélection aléatoire d'une centaine de contributions, 25 pour chacun des quatre thèmes, sélectionnées dans votre circonscription.
+Les pages suivantes contiennent une sélection aléatoire d'une centaine de contributions, 25 pour chacun des quatre thèmes, sélectionnées en priorité dans votre circonscription, sauf pour les circonscriptions législatives des français établis hors de France. Pour Paris, Lyon et Marseille, l'ensemble de la ville est pris en compte.
 
 \\section*{Quelques chiffres}
 L'ensemble des contributions publiques déposées sur \\emph{granddebat.fr} représente un total de plus de 160 millions de mots (soit plus de 300 fois Les Misérables de Victor Hugo).\\newline
