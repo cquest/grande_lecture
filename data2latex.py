@@ -178,7 +178,7 @@ Il faudrait plus de quatre ans et demi pour lire l'intégralité à raison de 8 
 if stats[0] > 0 or docs[0]>0:
     out("\\section*{Dans votre circonscription}"+crlf)
     if stats[0] > 0 :
-        out("""\\textbf{%s} personnes ont déposé \\textbf{%s} contributions libres sur \\emph{granddebat.fr} """ % (stats[0], stats[1]))
+        out("""\\textbf{%s} personnes ont déposé des contributions libres sur \\emph{granddebat.fr} """ % (stats[0], ))
         if ranks :
             out(""" ce qui place votre circonscription en \\textbf{%s\\textsuperscript{%s}} place dans le département et \\textbf{%s\\textsuperscript{%s}} place au niveau national."""
                 % (ranks[3], 'e' if ranks[3] > 1 else 'ère',
