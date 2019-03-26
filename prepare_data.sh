@@ -39,7 +39,7 @@ update cp set code_commune_insee = '75056' where code_postal LIKE '75%';
 "
 
 # vue élu + email / circo / commune / cp
-psql grandelecture -c "create view elu_cp as select dep,circo,nom,prenom,sexe,code_commune,code_postal,lower(format('%s.%s@assemblee-nationale.fr',replace(unaccent(prenom),' ',''),replace(unaccent(nom),' ',''))) as email from deputes d join circo c on (code_dpt=dep and code_circ_legislative=circo) join cp on (code_commune_insee=code_commune) ;"
+psql grandelecture -c "create or replace view elu_cp as select dep,circo,nom,prenom,sexe,code_commune,code_postal,lower(format('%s.%s@assemblee-nationale.fr',replace(unaccent(prenom),' ',''),replace(unaccent(nom),' ',''))) as email from deputes d join circo c on (code_dpt=dep and code_circ_legislative=circo) join cp on (code_commune_insee=regexp_replace(regexp_replace(code_commune,'Z[Z[NPX]]','98'),'Z[A-DMS]','97')) ;"
 
 # import contributions
 psql grandelecture -c "drop table if exists contrib ; create table contrib (j json);"
