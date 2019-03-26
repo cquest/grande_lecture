@@ -2,7 +2,7 @@ mkdir -p out
 mkdir -p pdf
 mkdir -p tex
 cd out
-DEPUTES=$(psql grandelecture -tAc "SELECT replace(nom,' ','_') FROM deputes ORDER BY nom")
+DEPUTES=$(psql grandelecture -tAc "SELECT format('%s,%s',replace(nom,' ','_'),replace(prenom,' ','_')) FROM deputes ORDER BY nom")
 for D in $DEPUTES
 do
   if [ ! -f ../pdf/$D.pdf ]
@@ -20,5 +20,4 @@ do
   then
     convert ../pdf/$D.pdf[0] -resize 50% ../png/$D.png
   fi
-
 done
