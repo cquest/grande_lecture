@@ -32,6 +32,19 @@ def out(data):
     print(data)
 
 
+def select_contribs():
+    db.execute("""
+    SELECT * FROM (
+        SELECT      j::text
+        FROM        contrib_depute ce
+        NATURAL JOIN contrib c
+        WHERE       ce.nom = %s and ce.prenom = %s AND reference LIKE %s||'%%'
+        ) as c
+    GROUP BY 1
+    """, (nom if geo is None else geo, prenom if geo is None else '', str(t+1),))
+    return db.fetchall()
+
+
 def reponse2tex(gdebat):
     global minutes
 
@@ -71,9 +84,62 @@ def reponse2tex(gdebat):
         if nbrep == 0:
             out('\\emph{Aucune réponse donnée aux questions proposées.}')
 
-params = sys.argv[1].replace('_',' ').split(',')
-nom = params[0]
-prenom=params[1]
+
+# connexion à la base postgres
+pg = psycopg2.connect('dbname=grandelecture')
+db = pg.cursor()
+params = sys.argv[1].replace('_', ' ').split(',')
+
+if len(params)>1:
+    # on a un nom,prenom de député en entrée
+    nom = params[0]
+    prenom = params[1]
+    geo = None
+
+    db.execute(
+        "SELECT prenom, nom, sexe FROM deputes WHERE nom = %s AND prenom = %s", (nom, prenom))
+    elu = db.fetchone()
+    sous_titre = 'Exemplaire personnel destiné à\\newline ' + \
+        ('Monsieur le député' if elu[2] == 'M' else 'Madame la députée')
+    sous_titre2 = elu[0] + ' ' + elu[1]
+    sous_titre3 = ", sélectionnées en priorité dans votre circonscription, sauf pour les circonscriptions législatives des français établis hors de France. Pour Paris, Lyon et Marseille, l'ensemble de la ville est pris en compte"
+    sous_titre4 = elu[0] + ' ' + elu[1]
+    db.execute("SELECT count(distinct(authorid)), count(*) FROM contrib JOIN elu_cp ON (authorzipcode=code_postal) WHERE nom = %s and prenom = %s",
+               (nom, prenom))
+    stats = db.fetchone()
+    db.execute("SELECT r.* FROM deputes d NATURAL JOIN ranks r WHERE nom = %s AND prenom = %s",
+           (nom, prenom))
+    ranks = db.fetchone()
+
+    db.execute(
+        'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom = %s and prenom = %s) e natural join documents d ', (nom, prenom))
+    docs = db.fetchone()
+else:
+    ## on a un code département ou code postal en entrée...
+    nom = None
+    geo = sys.argv[1]
+    stats = None
+    ranks = None
+    docs = None
+    if len(geo) == 5:
+        # cas des codes postaux
+        db.execute(
+            "select string_agg(distinct(nom_de_la_commune),', ' order by nom_de_la_commune) from cp where code_postal = %s" , (geo,))
+        cp = db.fetchone()
+        sous_titre = 'Sélection de contributions issues\\newline du code postal'
+        sous_titre2 = geo + '\\newline \\quad \\newline \\large ' + cp[0].replace(', ','\\newline ')
+        sous_titre3 = ", sélectionnées en priorité par code postal"
+        sous_titre4 = "Code Postal "+geo
+    else:
+        # c'est un département...
+        db.execute(
+            "select nom FROM departements WHERE code_insee = %s", (geo if geo != '20' else '2A',))
+        dep = db.fetchone()
+        sous_titre = 'Sélection de contributions issues\\newline du département'
+        sous_titre2 = dep[0] + ((' (%s)' % geo) if geo < 'Z' else '')
+        sous_titre3 = ", sélectionnées sur le département"
+        sous_titre4 = dep[0]
+
 
 crlf = '\x0d\x0a'
 themes = ["Démocratie et citoyenneté",
@@ -81,24 +147,7 @@ themes = ["Démocratie et citoyenneté",
           "Fiscalité et dépenses publiques",
           "Organisation de l'État et des services publics"]
 
-pg = psycopg2.connect('dbname=grandelecture')
-db = pg.cursor()
 
-db.execute("SELECT prenom, nom, sexe FROM deputes WHERE nom = %s AND prenom = %s", (nom,prenom))
-elu = db.fetchone()
-
-db.execute("SELECT count(distinct(authorid)), count(*) FROM contrib JOIN elu_cp ON (authorzipcode=code_postal) WHERE nom = %s and prenom = %s",
-           (nom,prenom))
-stats = db.fetchone()
-
-db.execute("SELECT r.* FROM deputes d NATURAL JOIN ranks r WHERE nom = %s AND prenom = %s",
-           (nom,prenom))
-ranks = db.fetchone()
-
-
-db.execute(
-    'select count(d.*), count(distinct(date||d.code_postal||ville)) from (select distinct(code_postal) as code_postal from elu_cp where nom = %s and prenom = %s) e natural join documents d ', (nom, prenom))
-docs = db.fetchone()
 
 out("""\\documentclass[a4paper, 10pt]{book}
 \\usepackage[utf8]{inputenc}
@@ -116,7 +165,7 @@ out("""\\documentclass[a4paper, 10pt]{book}
 }
 \\usepackage{fancyhdr}
 
-\\usepackage{geometry}
+\\usepackage[headheight=13pt]{geometry}
 \\geometry{a4paper, portrait, margin=25mm}
 \\setlength{\parindent}{0em}
 
@@ -136,11 +185,8 @@ out("""\\documentclass[a4paper, 10pt]{book}
 \\textbf{Grande Lecture du Grand Débat\\newline}
 \\vspace{1cm}
 \\rule{\\textwidth}{0.25pt}
-Exemplaire personnel destiné à\\newline
-\\newline
-%s\\newline
-\\newline
-\\emph{\\textbf{%s %s}}\\newline
+%s\\newline \\par
+\\emph{\\textbf{%s}}\\newline
 }
 \\vspace*{\\fill}
 
@@ -165,17 +211,14 @@ Ce projet de \\emph{Grande Lecture} a pour but de répondre partiellement à ce 
 \\newline
 Par respect pour ces citoyens, nous vous demandons de prendre le temps de lire vous-même ces quelques contributions, qui ne représentent finalement qu'une infime partie des ce qui a été exprimé.\\newline
 \\newline
-Les pages suivantes contiennent une sélection aléatoire d'une centaine de contributions, 25 pour chacun des quatre thèmes, sélectionnées en priorité dans votre circonscription, sauf pour les circonscriptions législatives des français établis hors de France. Pour Paris, Lyon et Marseille, l'ensemble de la ville est pris en compte.
+Les pages suivantes contiennent une sélection aléatoire d'une centaine de contributions, 25 pour chacun des quatre thèmes%s.
 
 \\section*{Quelques chiffres}
 L'ensemble des contributions publiques déposées sur \\emph{granddebat.fr} représente un total de plus de 160 millions de mots (soit plus de 300 fois Les Misérables de Victor Hugo).\\newline
 Il faudrait plus de quatre ans et demi pour lire l'intégralité à raison de 8 heures par jour, 7 jours sur 7.
-""" % ('Monsieur le député' if elu[2] == 'M' else 'Madame la députée',
-       elu[0],
-       elu[1],
-       ) + crlf)
+""" % (sous_titre, sous_titre2, sous_titre3) + crlf)
 
-if stats[0] > 0 or docs[0]>0:
+if not geo and (stats[0] > 0 or docs[0]>0):
     out("\\section*{Dans votre circonscription}"+crlf)
     if stats[0] > 0 :
         out("""\\textbf{%s} personnes ont déposé des contributions libres sur \\emph{granddebat.fr} """ % (stats[0], ))
@@ -218,7 +261,7 @@ Différentes analyses ont montré la très faible représentativité des contrib
 \\lhead{\\leftmark}
 \\lfoot{www.grande-lecture.fr}
 \\cfoot{\\thepage}
-\\rfoot{%s %s}
+\\rfoot{%s}
 
 \\tableofcontents
 
@@ -227,103 +270,112 @@ Différentes analyses ont montré la très faible représentativité des contrib
 
 \\clearpage
 
-""" % (elu[0], elu[1]))
+""" % (sous_titre4,))
 
 
 minutes = 0
 for t in range(0, 4):
     #  sélection et stockage des contributions tirées au sort de façon unique
-    db.execute("""
-    SELECT * FROM (
-        SELECT      j::text
-        FROM        contrib_depute ce
-        NATURAL JOIN contrib c
-        WHERE       ce.nom = %s and ce.prenom = %s AND reference LIKE %s||'%%'
-        ) as c
-    GROUP BY 1
-    """, (nom, prenom, str(t+1),))
-    gdebat = db.fetchall()
+    gdebat = select_contribs()
     manque = 25 - len(gdebat)
 
-    if manque > 0:
-        db.execute("""
-        INSERT INTO contrib_depute SELECT j->>'reference', %s, %s FROM (
-            SELECT      j
-            FROM        elu_cp e
-            JOIN        contrib c ON (c.authorzipcode=e.code_postal)
-            NATURAL LEFT JOIN contrib_depute
-            WHERE       nom = %s AND prenom = %s AND reference LIKE %s||'%%' AND length(c.j::text)<50000
-                        AND contrib_depute.nom is NULL
-            ORDER BY    random()
-            LIMIT       25) as c
-        GROUP BY 1
-        LIMIT %s; commit;
-        """, (nom, prenom, nom, prenom, str(t+1), manque))
-        db.execute("""
-        SELECT * FROM (
-            SELECT      j::text
-            FROM        contrib_depute ce 
-            NATURAL JOIN contrib c
-            WHERE       ce.nom = %s and ce.prenom = %s AND reference LIKE %s||'%%'
-            ) as c
-        GROUP BY 1
-        """, (nom, prenom, str(t+1),))
-        gdebat = db.fetchall()
-        manque = manque - len(gdebat)
+    if geo:
+        if manque > 0:
+            db.execute("""
+            INSERT INTO contrib_depute SELECT j->>'reference', %s, '' FROM (
+                SELECT      j
+                FROM        contrib c
+                LEFT JOIN   contrib_depute ce ON (ce.reference = c.reference and nom = %s)
+                WHERE       c.authorzipcode LIKE %s||'%%'
+                            AND c.reference LIKE %s||'%%'
+                            AND length(c.j::text)<50000
+                            AND ce.nom is NULL
+                ORDER BY    random()
+                LIMIT       25) as c
+            GROUP BY 1
+            LIMIT %s; 
+            """, (geo, geo, geo, str(t+1), manque))
+            pg.commit()
+            gdebat = select_contribs()
+            manque = 25 - len(gdebat)
 
-    if manque > 0 and stats[0] == 0:
-        db.execute("""
-        INSERT INTO contrib_depute SELECT j->>'reference', %s, %s FROM (
-            SELECT      j
-            FROM        contrib c
-            NATURAL LEFT JOIN contrib_depute
-            WHERE       reference LIKE %s||'%%' AND length(c.j::text)<50000
-                        AND (authorzipcode < '01' OR authorzipcode > '97')
-                        AND contrib_depute.nom is NULL
-            ORDER BY    random()
-            LIMIT       25 ) as c
-        GROUP BY 1
-        LIMIT %s; commit;
-        """, (nom, prenom, str(t+1), manque))
-        db.execute("""
-        SELECT * FROM (
-            SELECT      j::text
-            FROM        contrib_depute ce 
-            NATURAL JOIN contrib c
-            WHERE       ce.nom = %s and ce.prenom = %s AND reference LIKE %s||'%%'
-            ) as c
-        GROUP BY 1
-        """, (nom, prenom, str(t+1),))
-        gdebat = db.fetchall()
-        manque = manque - len(gdebat)
+        if manque > 0:
+            dep = (geo[:2] if geo < '97' else geo[:3])
+            db.execute("""
+            INSERT INTO contrib_depute SELECT j->>'reference', %s, '' FROM (
+                SELECT      j
+                FROM        contrib c
+                LEFT JOIN   contrib_depute ce ON (ce.reference = c.reference and nom = %s)
+                WHERE       c.authorzipcode LIKE %s||'%%'
+                            AND c.reference LIKE %s||'%%'
+                            AND length(c.j::text)<50000
+                            AND ce.nom is NULL
+                ORDER BY    random()
+                LIMIT       25) as c
+            GROUP BY 1
+            LIMIT %s;
+            """, (geo, geo, dep, str(t+1), manque))
+            pg.commit()
+            gdebat = select_contribs()
+            manque = 25 - len(gdebat)
+    else:
+        if manque > 0:
+            db.execute("""
+            INSERT INTO contrib_depute SELECT j->>'reference', %s, %s FROM (
+                SELECT      j
+                FROM        elu_cp e
+                JOIN        contrib c ON (c.authorzipcode=e.code_postal)
+                NATURAL LEFT JOIN contrib_depute
+                WHERE       nom = %s AND prenom = %s AND reference LIKE %s||'%%' AND length(c.j::text)<50000
+                            AND contrib_depute.nom is NULL
+                ORDER BY    random()
+                LIMIT       25) as c
+            GROUP BY 1
+            LIMIT %s; 
+            """, (nom, prenom, nom, prenom, str(t+1), manque))
+            pg.commit()
+            gdebat = select_contribs()
+            manque = 25 - len(gdebat)
 
-    if manque > 0:
-        db.execute("""
-        INSERT INTO contrib_depute SELECT j->>'reference', %s, %s FROM (
-            SELECT      j
-            FROM        contrib c
-            NATURAL LEFT JOIN contrib_depute
-            WHERE       reference LIKE %s||'%%' AND length(c.j::text)<50000
-                        AND contrib_depute.nom is NULL
-            ORDER BY    random()
-            LIMIT       25 ) as c
-        GROUP BY 1
-        LIMIT %s; commit;
-        """, (nom, prenom, str(t+1), manque))
-        db.execute("""
-        SELECT * FROM (
-            SELECT      j::text
-            FROM        contrib_depute ce
-            NATURAL JOIN contrib c
-            WHERE       ce.nom = %s and ce.prenom = %s AND reference LIKE %s||'%%'
-            ) as c
-        GROUP BY 1
-        """, (nom, prenom, str(t+1),))
-        gdebat = db.fetchall()
+        if manque > 0 and stats[0] == 0:
+            db.execute("""
+            INSERT INTO contrib_depute SELECT j->>'reference', %s, %s FROM (
+                SELECT      j
+                FROM        contrib c
+                NATURAL LEFT JOIN contrib_depute
+                WHERE       reference LIKE %s||'%%' AND length(c.j::text)<50000
+                            AND (authorzipcode < '01' OR authorzipcode > '97')
+                            AND contrib_depute.nom is NULL
+                ORDER BY    random()
+                LIMIT       25 ) as c
+            GROUP BY 1
+            LIMIT %s; 
+            """, (nom, prenom, str(t+1), manque))
+            pg.commit()
+            gdebat = select_contribs()
+            manque = 25 - len(gdebat)
+
+        if manque > 0:
+            db.execute("""
+            INSERT INTO contrib_depute SELECT j->>'reference', %s, %s FROM (
+                SELECT      j
+                FROM        contrib c
+                NATURAL LEFT JOIN contrib_depute
+                WHERE       reference LIKE %s||'%%' AND length(c.j::text)<50000
+                            AND contrib_depute.nom is NULL
+                ORDER BY    random()
+                LIMIT       25 ) as c
+            GROUP BY 1
+            LIMIT %s; 
+            """, (nom, prenom, str(t+1), manque))
+            pg.commit()
+            gdebat = select_contribs()
 
     out('\\chapter{%s} \\vspace{3cm}' % themes[t])
     if len(gdebat) != 25:
+        print(len(gdebat))
         exit()
+        
     reponse2tex(gdebat)
 
 
